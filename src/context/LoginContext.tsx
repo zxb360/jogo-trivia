@@ -5,7 +5,7 @@ type LoginContextType = {
   login: () => void;
   logout: () => void;
   token: string | null;
-  tokenLogin: () => void;
+  tokenLogin: (email: string) => void;
 };
 
 const LoginContext = createContext({} as LoginContextType);
