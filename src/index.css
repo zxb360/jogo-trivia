@@ -52,12 +52,27 @@
   }
 }
 
+/* animation-spin: var(--animation-spin); */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
 #root {
   width: 1126px;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
-  border-inline: 1px solid var(--border);
+  /* border-inline: 1px solid var(--border); */
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -73,7 +88,7 @@ h2 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
-}
+} 
 
 h1 {
   font-size: 56px;

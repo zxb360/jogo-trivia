@@ -10,7 +10,8 @@ interface QuestionWithShuffled extends Question {
 }
 
 export default function Jogo() {
-  const token = useContext(LoginContext).token;
+  const loginContext = useContext(LoginContext);
+  const token = loginContext.token;
   const navigate = useNavigate();
   
   const [questions, setQuestions] = useState<QuestionWithShuffled[]>([]);
@@ -27,12 +28,12 @@ export default function Jogo() {
   };
 
   function fetchQuestions() {
-    axios.get(`https://opentdb.com/api.php?amount=5&token=${token}`)
+    axios.get(`https://opentdb.com/api.php?amount=2&token=${token}`)
       .then((response) => {
         if (response.data.response_code === 3) {
           // Token expirado
           localStorage.removeItem('token');
-          navigate('/login');
+          navigate('/jogo');
           return;
         }
 
@@ -68,22 +69,26 @@ export default function Jogo() {
 
   useEffect(() => {
     if (!token) {
-      navigate('/login');
+      navigate('/');
       return;
     }
     fetchQuestions();
   }, [token, navigate]);
 
   useEffect(() => {
-    if (timer > 0 && !isAnswered && questions.length > 0) {
+    if (questions.length > 0 && !isAnswered && timer > 0) {
       const interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
+        setTimer((prev) => {
+          if (prev <= 1) {
+            setIsAnswered(true); // Bloqueia as respostas quando o tempo acaba
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
       return () => clearInterval(interval);
-    } else if (timer === 0 && !isAnswered) {
-      setIsAnswered(true); // Bloqueia as respostas quando o tempo acaba
     }
-  }, [timer, isAnswered, questions]);
+  }, [questions.length, isAnswered, timer]);
 
   if (questions.length === 0) return <div className="text-center p-10">Carregando perguntas...</div>;
 
@@ -95,7 +100,10 @@ export default function Jogo() {
         <h1 className="text-3xl font-bold mb-4">Fim de Jogo!</h1>
         <p className="text-xl mb-8">Sua pontuação final foi: <span className="text-yellow-500 font-bold">{score}</span></p>
         <button 
-          onClick={() => navigate('/')}
+          onClick={() => {
+            loginContext.logout();
+            navigate('/')}
+          }
           className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
         >
           Voltar ao Início
@@ -121,7 +129,7 @@ export default function Jogo() {
           <span>{currentQuestion.category}</span>
           <span className="capitalize font-bold">Dificuldade: {currentQuestion.difficulty}</span>
         </div>
-        <h3 className="text-xl mb-6 antialiased">{currentQuestion.question}</h3>
+        <h3 className="text-xl text-slate-900 font-bold mb-6 antialiased" dangerouslySetInnerHTML={{ __html: currentQuestion.question }} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {currentQuestion.all_answers.map((answer, aIdx) => {
