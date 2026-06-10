@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react';
+import { useCallback, useEffect, useState, useContext } from 'react';
 import LoginContext from '../context/LoginContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -9,6 +9,8 @@ interface QuestionWithShuffled extends Question {
   all_answers: string[];
 }
 
+const QUESTION_TIME = 15;
+
 export default function Jogo() {
   const loginContext = useContext(LoginContext);
   const token = loginContext.token;
@@ -18,7 +20,7 @@ export default function Jogo() {
   const [score, setScore] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [timer, setTimer] = useState(10);
+  const [timer, setTimer] = useState(QUESTION_TIME);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   // Lógica de pontos: Easy=10, Medium=20, Hard=30
@@ -27,8 +29,8 @@ export default function Jogo() {
     return weights[difficulty] || 10;
   };
 
-  function fetchQuestions() {
-    axios.get(`https://opentdb.com/api.php?amount=2&token=${token}`)
+  const fetchQuestions = useCallback(() => {
+    axios.get(`https://opentdb.com/api.php?amount=5&token=${token}`)
       .then((response) => {
         if (response.data.response_code === 3) {
           // Token expirado
@@ -47,7 +49,7 @@ export default function Jogo() {
       .catch((error) => {
         console.error('Erro ao buscar perguntas:', error);
       });
-  }
+  }, [navigate, token]);
 
   const handleAnswerClick = (selectedAnswer: string, difficulty: string, correct: string) => {
     if (isAnswered) return;
@@ -64,7 +66,7 @@ export default function Jogo() {
     setCurrentQuestionIndex((prev) => prev + 1);
     setIsAnswered(false);
     setSelectedAnswer(null);
-    setTimer(10);
+    setTimer(QUESTION_TIME);
   };
 
   useEffect(() => {
@@ -73,22 +75,25 @@ export default function Jogo() {
       return;
     }
     fetchQuestions();
-  }, [token, navigate]);
+  }, [token, navigate, fetchQuestions]);
 
   useEffect(() => {
-    if (questions.length > 0 && !isAnswered && timer > 0) {
-      const interval = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            setIsAnswered(true); // Bloqueia as respostas quando o tempo acaba
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [questions.length, isAnswered, timer]);
+    if (questions.length === 0 || isAnswered) return;
+
+    const interval = setInterval(() => {
+      setTimer((previousTimer) => {
+        if (previousTimer <= 1) {
+          clearInterval(interval);
+          setIsAnswered(true);
+          return 0;
+        }
+
+        return previousTimer - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [questions.length, currentQuestionIndex, isAnswered]);
 
   if (questions.length === 0) return <div className="text-center p-10">Carregando perguntas...</div>;
 
@@ -113,13 +118,12 @@ export default function Jogo() {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-
   return (
     <main className="p-4 max-w-3xl mx-auto">
       <header className="flex justify-between items-center mb-8 bg-slate-800 text-white p-4 rounded-lg shadow">
         <h1 className="text-xl font-bold">Trivia Challenge</h1>
         <div className={`text-xl font-mono ${timer < 4 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
-          Tempo: {timer}s
+          Tempo: {String(timer).padStart(2, '0')}s
         </div>
         <div className="text-lg">Pontuação: <span className="font-mono text-yellow-400">{score}</span></div>
       </header>

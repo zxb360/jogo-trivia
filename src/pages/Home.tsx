@@ -27,8 +27,8 @@ export default function Home() {
   return (
     <>
       {loginContext.isLoggedIn || loginContext.token ? (
-        <div className="flex items-center justify-center
-        h-screen bg-black bg-gradient-r from-blue-500 to-purple-600">
+        <div className="flex flex-col items-center justify-center
+        h-screen from-blue-500 to-purple-600">
         <h1>Login</h1>
         <form className="flex flex-col gap-4 bg-white p-6 rounded-lg shadow-md" onSubmit={handleLogin}>
           <input

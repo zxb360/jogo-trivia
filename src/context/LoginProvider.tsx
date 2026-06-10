@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import LoginContext from './LoginContext';
+import axios from 'axios';
 
 type LoginProviderProps = {
   children: React.ReactNode;
@@ -23,8 +24,8 @@ export default function LoginProvider({ children }: LoginProviderProps) {
     }
 
     // Se não existir ou estiver expirado, busca um novo
-    fetch('https://opentdb.com/api_token.php?command=request')
-      .then((response) => response.json())
+    axios.get('https://opentdb.com/api_token.php?command=request')
+      .then((response) => response.data)
       .then((data) => {
         if (data.token) {
           const newToken = data.token;

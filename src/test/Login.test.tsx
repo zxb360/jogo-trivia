@@ -2,13 +2,13 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
-import Login from '../pages/Login';
+import Home from '../pages/Home';
 import LoginContext from '../context/LoginContext';
 
 describe('Página de Login', () => {
   const tokenLogin = vi.fn();
   const contextValue = {
-    isLoggedIn: false,
+    isLoggedIn: true,
     login: vi.fn(),
     logout: vi.fn(),
     token: null,
@@ -19,7 +19,7 @@ describe('Página de Login', () => {
     render(
       <LoginContext.Provider value={contextValue}>
         <BrowserRouter>
-          <Login />
+          <Home />
         </BrowserRouter>
       </LoginContext.Provider>
     );
