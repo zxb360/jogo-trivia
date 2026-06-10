@@ -6,7 +6,7 @@ import Jogo from '../pages/Jogo';
 import LoginContext from '../context/LoginContext';
 
 vi.mock('axios');
-const mockedAxios = axios as vi.Mocked<typeof axios>;
+const mockedAxios = vi.mocked(axios);
 
 describe('Página de Jogo', () => {
   const contextValue = {
